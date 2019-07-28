@@ -44,8 +44,8 @@ const paths = {
 		dest: "dist/scripts/"
 	},
 	views: {
-		src: "src/views/**/*.ejs",
-		dest: "dist/views/**/"
+		src: "views/**/*.ejs",
+		dest: "dist/views/"
 	}
 };
 
@@ -65,27 +65,16 @@ gulp.task("clean-dist", function() {
 const isExpress = false; // Set to true if using Express
 
 gulp.task("nodemon", cb => {
-	let started = false;
-
-	return nodemon({
-		script: "src/app.js"
-	}).on("start", () => {
-		if (!started) {
-			cb();
-			started = true;
-		}
-	});
-});
-
-gulp.task("browser-sync", function() {
 	if (isExpress) {
-		gulp.series("nodemon", () => {
-			browserSync.init(null, {
-				proxy: "http://localhost:3000",
-				files: ["dist/**/*.*"],
+		let started = false;
 
-				port: 3001
-			});
+		return nodemon({
+			script: "src/app.js"
+		}).on("start", () => {
+			if (!started) {
+				cb();
+				started = true;
+			}
 		});
 	} else {
 		browserSync.init({
@@ -94,7 +83,22 @@ gulp.task("browser-sync", function() {
 			}
 		});
 	}
+	// reload;
 });
+
+gulp.task(
+	"browser-sync",
+
+	gulp.series("nodemon", () => {
+		browserSync.init(null, {
+			proxy: "http://localhost:7000",
+			files: ["dist/views/*.*"],
+			port: 9000
+		});
+	})
+);
+
+gulp.task("serve", gulp.series("browser-sync", () => {}));
 
 function reload(done) {
 	browserSync.reload();
@@ -109,9 +113,7 @@ gulp.task("html", function() {
 
 // Views ejs Task
 gulp.task("ejs", function() {
-  return gulp
-    .src(paths.views.src)
-    .pipe(gulp.dest(paths.views.dest));
+	return gulp.src(paths.views.src).pipe(gulp.dest(paths.views.dest));
 });
 
 // SCSS / CSS Tasks
@@ -158,11 +160,12 @@ gulp.task("watch", function() {
 	gulp.watch(paths.styles.src, gulp.series(["styles", reload]));
 	gulp.watch(paths.assets.src, gulp.series(["images", reload]));
 	gulp.watch(paths.scripts.src, gulp.series(["scripts", reload]));
+	gulp.watch(paths.views.src, gulp.series(["ejs", reload]));
 });
 
 // Build and Default Tasks
 gulp.task(
 	"build",
-	gulp.series(["clean-dist", "html", 'ejs', "styles", "images", "scripts"])
+	gulp.series(["clean-dist", "html", "ejs", "styles", "images", "scripts"])
 );
-gulp.task("default", gulp.parallel(["build", "browser-sync", "watch"]));
+gulp.task("default", gulp.parallel(["build", "serve", "watch"]));
