@@ -17,13 +17,20 @@
 * [gulp-sourcemaps](https://www.npmjs.com/package/gulp-sourcemaps)
 * [gulp-uglify](https://www.npmjs.com/package/gulp-uglify)
 * [node-sass](https://www.npmjs.com/package/gulp-sass)
+* [ejs](https://www.npmjs.com/package/ejs)
+* [body-parser](https://www.npmjs.com/package/body-parser)
 
 ***Note:*** For me the exciting part about this template is that it is setup for multiple development environments. (Or at least that is the goal.) The most difficult part of this whole thing was accounting for an Express environment. Found a great [resource](https://gist.github.com/sogko/b53d33d4f3b40d3b4b2e) but it was [@DmitriouS](https://gist.github.com/Dmitri801) that had the code to get it working... mostly. The part I enjoyed most programming was the check for Express. In the Server Task section of the gulpfile, you will find a boolean ***isExpress*** if you change it to ***true*** then the ***browser-sync*** task will start ***nodemon*** for you, otherwise it won't. 
 
 ```javascript
+// Server Tasks
+// Must be aware of whether or not we are using Express and Nodemon
+
 const isExpress = false; // Set to true if using Express
 
 gulp.task("nodemon", cb => {
+	if ( isExpress) {
+
 	let started = false;
 
 	return nodemon({
@@ -34,26 +41,34 @@ gulp.task("nodemon", cb => {
 			started = true;
 		}
 	});
-});
-
-gulp.task("browser-sync", function() {
-	if (isExpress) {
-		gulp.series("nodemon", () => {
-			browserSync.init(null, {
-				proxy: "http://localhost:3000",
-				files: ["dist/**/*.*"],
-
-				port: 3001
-			});
-		});
 	} else {
-		browserSync.init({
-			server: {
-				baseDir: "dist/"
-			}
-		});
-	}
+				browserSync.init({
+					server: {
+					baseDir: "dist/"
+				}
+			})
+		}
+	reload
 });
+
+gulp.task(
+	"browser-sync",
+
+	gulp.series("nodemon", () => {
+		browserSync.init(null, {
+			proxy: "http://localhost:7000",
+			files: ["dist/views/*.*"],
+			port: 9000
+		});
+	})
+);
+
+gulp.task('serve', gulp.series("browser-sync", () => {}));
+
+function reload(done) {
+	browserSync.reload();
+	done();
+}
 ```
 
 PS - This is my first contribution!
