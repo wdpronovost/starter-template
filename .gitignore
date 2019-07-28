@@ -1,0 +1,6 @@
+node_modules
+.DS_Store
+Thumb.db
+.idea/workspace.xml
+.Spotlight-V100
+.Trashes
